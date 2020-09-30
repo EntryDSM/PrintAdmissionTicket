@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/valyala/fasthttp"
+	"log"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func DoJSONWrite(ctx *fasthttp.RequestCtx, error ErrorResponse) {
 	body, err := json.Marshal(error)
 	if err != nil {
 		elapsed := time.Since(start)
-		fmt.Errorf("", elapsed, err.Error(), error)
+		log.Println(fmt.Sprintf("[ERROR] %s %s %s", elapsed, err, error.Reason))
 		ctx.Error(err.Error(), fasthttp.StatusInternalServerError)
 	}
 	ctx.SetContentType(applicationJSON)
