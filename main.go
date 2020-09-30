@@ -28,12 +28,12 @@ func printApplicantAdmission(ctx *fasthttp.RequestCtx) {
 	xlsx := excelize.NewFile()
 	SetColumnWidth(xlsx)
 	xlsx.SetPageLayout(
-		"Sheet1",
+		AdmissionTicketSheet,
 		excelize.PageLayoutOrientation(excelize.OrientationLandscape),
 		excelize.PageLayoutPaperSize(9),
 	)
 
-	xlsx.SetPageMargins("Sheet1",
+	xlsx.SetPageMargins(AdmissionTicketSheet,
 		excelize.PageMarginHeader(0.3),
 		excelize.PageMarginFooter(0.3),
 		excelize.PageMarginTop(0.25),

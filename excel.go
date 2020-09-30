@@ -8,6 +8,10 @@ import (
 	"log"
 )
 
+var (
+	AdmissionTicketSheet = "수험표"
+)
+
 func SetColumnWidth(xlsx *excelize.File) {
 	xlsx.SetDefaultFont("맑은 고딕")
 	setStyleWithFont(xlsx)
@@ -15,13 +19,13 @@ func SetColumnWidth(xlsx *excelize.File) {
 		colName, _ := excelize.ColumnNumberToName(col)
 		switch index := col % 4; index {
 		case 1:
-			xlsx.SetColWidth("Sheet1", colName, colName, 14.97)
+			xlsx.SetColWidth(AdmissionTicketSheet, colName, colName, 14.97)
 		case 2:
-			xlsx.SetColWidth("Sheet1", colName, colName, 8.97)
+			xlsx.SetColWidth(AdmissionTicketSheet, colName, colName, 8.97)
 		case 3:
-			xlsx.SetColWidth("Sheet1", colName, colName, 17.97)
+			xlsx.SetColWidth(AdmissionTicketSheet, colName, colName, 17.97)
 		case 0:
-			xlsx.SetColWidth("Sheet1", colName, colName, 2.97)
+			xlsx.SetColWidth(AdmissionTicketSheet, colName, colName, 2.97)
 		}
 	}
 }
@@ -32,14 +36,14 @@ func setStyleWithFont(xlsx *excelize.File) {
 
 	alignment.ShrinkToFit = true
 	defaultStyle, _ := xlsx.NewStyle(&excelize.Style{Font: font, Alignment: alignment})
-	xlsx.SetColStyle("Sheet1", "A:K", defaultStyle)
+	xlsx.SetColStyle(AdmissionTicketSheet, "A:K", defaultStyle)
 
 	alignment.WrapText = true
 	alignment.ShrinkToFit = false
 	titleStyle, _ := xlsx.NewStyle(&excelize.Style{Font: font, Alignment: alignment})
-	xlsx.SetColStyle("Sheet1", "A", titleStyle)
-	xlsx.SetColStyle("Sheet1", "E", titleStyle)
-	xlsx.SetColStyle("Sheet1", "I", titleStyle)
+	xlsx.SetColStyle(AdmissionTicketSheet, "A", titleStyle)
+	xlsx.SetColStyle(AdmissionTicketSheet, "E", titleStyle)
+	xlsx.SetColStyle(AdmissionTicketSheet, "I", titleStyle)
 }
 
 func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
@@ -63,26 +67,26 @@ func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
 	applyTypeCell, _ := excelize.CoordinatesToCellName(col+1, row+6)
 	applyTypeValueCell, _ := excelize.CoordinatesToCellName(col+2, row+6)
 
-	xlsx.MergeCell("Sheet1", titleHCell, titleVCell)
-	xlsx.MergeCell("Sheet1", footerHCell, footerVCell)
-	xlsx.MergeCell("Sheet1", imageHCell, imageVCell)
+	xlsx.MergeCell(AdmissionTicketSheet, titleHCell, titleVCell)
+	xlsx.MergeCell(AdmissionTicketSheet, footerHCell, footerVCell)
+	xlsx.MergeCell(AdmissionTicketSheet, imageHCell, imageVCell)
 
-	xlsx.SetCellStr("Sheet1", titleHCell, "2021학년도 대덕소프트웨어마이스터고등학교\n입학전형 수험표")
-	xlsx.SetCellStr("Sheet1", footerHCell, "대덕소프트웨어마이스터고등학교장")
+	xlsx.SetCellStr(AdmissionTicketSheet, titleHCell, "2021학년도 대덕소프트웨어마이스터고등학교\n입학전형 수험표")
+	xlsx.SetCellStr(AdmissionTicketSheet, footerHCell, "대덕소프트웨어마이스터고등학교장")
 
-	xlsx.SetCellStr("Sheet1", examCodeCell, "수험번호")
-	xlsx.SetCellStr("Sheet1", nameCell, "성명")
-	xlsx.SetCellStr("Sheet1", middleSchoolCell, "출신중학교")
-	xlsx.SetCellStr("Sheet1", isDaejeonCell, "지역")
-	xlsx.SetCellStr("Sheet1", applyTypeCell, "전형유형")
-	xlsx.SetCellStr("Sheet1", receiptCodeCell, "접수번호")
+	xlsx.SetCellStr(AdmissionTicketSheet, examCodeCell, "수험번호")
+	xlsx.SetCellStr(AdmissionTicketSheet, nameCell, "성명")
+	xlsx.SetCellStr(AdmissionTicketSheet, middleSchoolCell, "출신중학교")
+	xlsx.SetCellStr(AdmissionTicketSheet, isDaejeonCell, "지역")
+	xlsx.SetCellStr(AdmissionTicketSheet, applyTypeCell, "전형유형")
+	xlsx.SetCellStr(AdmissionTicketSheet, receiptCodeCell, "접수번호")
 
-	xlsx.SetCellValue("Sheet1", examCodeValueCell, ticket.ExamCode)
-	xlsx.SetCellValue("Sheet1", nameValueCell, ticket.Name)
-	xlsx.SetCellValue("Sheet1", middleSchoolValueCell, ticket.MiddleSchool)
-	xlsx.SetCellValue("Sheet1", isDaejeonValueCell, ticket.IsDaejeon)
-	xlsx.SetCellValue("Sheet1", applyTypeValueCell, ticket.ApplyType)
-	xlsx.SetCellValue("Sheet1", receiptCodeValueCell, ticket.ReceiptCode)
+	xlsx.SetCellValue(AdmissionTicketSheet, examCodeValueCell, ticket.ExamCode)
+	xlsx.SetCellValue(AdmissionTicketSheet, nameValueCell, ticket.Name)
+	xlsx.SetCellValue(AdmissionTicketSheet, middleSchoolValueCell, ticket.MiddleSchool)
+	xlsx.SetCellValue(AdmissionTicketSheet, isDaejeonValueCell, ticket.IsDaejeon)
+	xlsx.SetCellValue(AdmissionTicketSheet, applyTypeValueCell, ticket.ApplyType)
+	xlsx.SetCellValue(AdmissionTicketSheet, receiptCodeValueCell, ticket.ReceiptCode)
 
 	if ticket.ImageURI != "" {
 		SaveIfEmpty(ticket.ImageURI)
@@ -91,7 +95,7 @@ func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
 			yScale = 0.3
 		}
 
-		err := xlsx.AddPicture("Sheet1", imageHCell, "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
+		err := xlsx.AddPicture(AdmissionTicketSheet, imageHCell, "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
 			"x_offset": 1, 
 			"y_offset": 1, 
 			"x_scale": 0.369, 
@@ -103,7 +107,7 @@ func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
 	}
 
 	for i := row; i <= row+9; i++ {
-		xlsx.SetRowHeight("Sheet1", i, 18)
+		xlsx.SetRowHeight(AdmissionTicketSheet, i, 18)
 	}
 
 	setBorderStyle(xlsx, titleHCell, titleVCell, 2, 2, 2, 1, true)
@@ -133,5 +137,5 @@ func setBorderStyle(xlsx *excelize.File, hCell string, vCell string, leftStyle i
 		Alignment: alignment,
 		Border:    []excelize.Border{left, right, top, bottom},
 	})
-	xlsx.SetCellStyle("Sheet1", hCell, vCell, style)
+	xlsx.SetCellStyle(AdmissionTicketSheet, hCell, vCell, style)
 }
