@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/entrydsm/printadmissionticket/db"
@@ -33,10 +34,12 @@ func main() {
 	r := router.New()
 	r.GET("/api/v5/admin/excel/admission_ticket", func(ctx *fasthttp.RequestCtx) {
 		if !IsValidToken(ctx, []byte(jwtSecretKey)) {
-			DoJSONWrite(ctx, ErrorResponse{Reason: "Invalid Token", Code: fasthttp.StatusUnauthorized})
+			ctx.Error("invalid token", http.StatusUnauthorized)
 			return
 		}
-		handler.PrintApplicantAdmission(ctx, dbCon, s3Downloader)
+		if err := handler.PrintApplicantAdmission(ctx, dbCon, s3Downloader); err != nil {
+			ctx.Error(err.Error(), http.StatusInternalServerError)
+		}
 	})
 
 	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))

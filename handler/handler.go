@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"log"
-
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/aws/aws-sdk-go-v2/service/s3/s3manager"
 	"github.com/valyala/fasthttp"
@@ -17,7 +15,7 @@ const (
 	FileName    = "대덕소프트웨어마이스터고등학교_수험표.xlsx"
 )
 
-func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloader *s3manager.Downloader) {
+func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloader *s3manager.Downloader) error {
 	xlsx := excelize.NewFile()
 	excel.SetColumnWidth(xlsx)
 
@@ -27,7 +25,7 @@ func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloade
 		excelize.PageLayoutPaperSize(9),
 	)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	err = xlsx.SetPageMargins("Sheet1",
@@ -39,7 +37,7 @@ func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloade
 		excelize.PageMarginRight(0.25),
 	)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	users := ListSubmittedUsers(dbCon)
@@ -72,8 +70,10 @@ func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloade
 	writer := ctx.Response.BodyWriter()
 	err = xlsx.Write(writer)
 	if err != nil {
-		log.Print(err)
+		return err
 	}
+
+	return nil
 }
 
 func ListSubmittedUsers(DBConn *gorm.DB) []db.UserModel {

@@ -2,15 +2,15 @@ package excel
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/s3manager"
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
 	"os"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/s3manager"
 )
 
 func SetColumnWidth(xlsx *excelize.File) {
@@ -140,7 +140,6 @@ func setBorderStyle(xlsx *excelize.File, hCell string, vCell string, leftStyle i
 	})
 	xlsx.SetCellStyle("Sheet1", hCell, vCell, style)
 }
-
 
 func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) {
 	if key == "" {
