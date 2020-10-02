@@ -37,20 +37,22 @@ func printApplicantAdmission(ctx *fasthttp.RequestCtx) {
 		user := users[index-1]
 		PrintTicket(xlsx, axis, user.ToTicket())
 
-		if index != len(users) {
-			switch column := index % 3; column {
-			case 1:
-				fallthrough
-			case 2:
-				col, row, _ := excelize.CellNameToCoordinates(axis)
-				axis, _ = excelize.CoordinatesToCellName(col+4, row)
-			case 0:
-				_, row, _ := excelize.CellNameToCoordinates(axis)
-				if index%9 == 0 {
-					row += 1
-				}
-				axis, _ = excelize.CoordinatesToCellName(1, row+10)
+		if index == len(users) {
+			break
+		}
+
+		switch column := index % 3; column {
+		case 1:
+			fallthrough
+		case 2:
+			col, row, _ := excelize.CellNameToCoordinates(axis)
+			axis, _ = excelize.CoordinatesToCellName(col+4, row)
+		case 0:
+			_, row, _ := excelize.CellNameToCoordinates(axis)
+			if index%9 == 0 {
+				row += 1
 			}
+			axis, _ = excelize.CoordinatesToCellName(1, row+10)
 		}
 	}
 
