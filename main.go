@@ -26,21 +26,10 @@ func printApplicantAdmission(ctx *fasthttp.RequestCtx) {
 	}
 
 	xlsx := excelize.NewFile()
-	SetColumnWidth(xlsx)
-	xlsx.SetPageLayout(
-		AdmissionTicketSheet,
-		excelize.PageLayoutOrientation(excelize.OrientationLandscape),
-		excelize.PageLayoutPaperSize(9),
-	)
 
-	xlsx.SetPageMargins(AdmissionTicketSheet,
-		excelize.PageMarginHeader(0.3),
-		excelize.PageMarginFooter(0.3),
-		excelize.PageMarginTop(0.25),
-		excelize.PageMarginBottom(0.25),
-		excelize.PageMarginLeft(0.25),
-		excelize.PageMarginRight(0.25),
-	)
+	InitSheet(xlsx)
+	SetColumnWidth(xlsx)
+	SetPageLayout(xlsx)
 
 	users := FindAllUserStatus()
 	axis := "A1"
