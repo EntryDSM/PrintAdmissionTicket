@@ -71,22 +71,26 @@ func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
 	xlsx.MergeCell(AdmissionTicketSheet, footerHCell, footerVCell)
 	xlsx.MergeCell(AdmissionTicketSheet, imageHCell, imageVCell)
 
-	xlsx.SetCellStr(AdmissionTicketSheet, titleHCell, "2021학년도 대덕소프트웨어마이스터고등학교\n입학전형 수험표")
-	xlsx.SetCellStr(AdmissionTicketSheet, footerHCell, "대덕소프트웨어마이스터고등학교장")
+	values := map[string]interface{}{
+		titleHCell:            "2021학년도 대덕소프트웨어마이스터고등학교\n입학전형 수험표",
+		footerHCell:           "대덕소프트웨어마이스터고등학교장",
+		examCodeCell:          "수험번호",
+		nameCell:              "성명",
+		middleSchoolCell:      "출신중학교",
+		isDaejeonCell:         "지역",
+		applyTypeCell:         "전형유형",
+		receiptCodeCell:       "접수번호",
+		examCodeValueCell:     ticket.ExamCode,
+		nameValueCell:         ticket.Name,
+		middleSchoolValueCell: ticket.MiddleSchool,
+		isDaejeonValueCell:    ticket.IsDaejeon,
+		applyTypeValueCell:    ticket.ApplyType,
+		receiptCodeValueCell:  ticket.ReceiptCode,
+	}
 
-	xlsx.SetCellStr(AdmissionTicketSheet, examCodeCell, "수험번호")
-	xlsx.SetCellStr(AdmissionTicketSheet, nameCell, "성명")
-	xlsx.SetCellStr(AdmissionTicketSheet, middleSchoolCell, "출신중학교")
-	xlsx.SetCellStr(AdmissionTicketSheet, isDaejeonCell, "지역")
-	xlsx.SetCellStr(AdmissionTicketSheet, applyTypeCell, "전형유형")
-	xlsx.SetCellStr(AdmissionTicketSheet, receiptCodeCell, "접수번호")
-
-	xlsx.SetCellValue(AdmissionTicketSheet, examCodeValueCell, ticket.ExamCode)
-	xlsx.SetCellValue(AdmissionTicketSheet, nameValueCell, ticket.Name)
-	xlsx.SetCellValue(AdmissionTicketSheet, middleSchoolValueCell, ticket.MiddleSchool)
-	xlsx.SetCellValue(AdmissionTicketSheet, isDaejeonValueCell, ticket.IsDaejeon)
-	xlsx.SetCellValue(AdmissionTicketSheet, applyTypeValueCell, ticket.ApplyType)
-	xlsx.SetCellValue(AdmissionTicketSheet, receiptCodeValueCell, ticket.ReceiptCode)
+	for axis, value := range values {
+		xlsx.SetCellValue(AdmissionTicketSheet, axis, value)
+	}
 
 	if ticket.ImageURI != "" {
 		SaveIfEmpty(ticket.ImageURI)
