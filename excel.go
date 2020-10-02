@@ -8,8 +8,9 @@ import (
 	"log"
 )
 
-var (
-	AdmissionTicketSheet = "수험표"
+const (
+	AdmissionTicketSheet        = "수험표"
+	RegionalClassificationSheet = "지원자 지역구분통계표"
 )
 
 func SetColumnWidth(xlsx *excelize.File) {
