@@ -13,6 +13,29 @@ const (
 	RegionalClassificationSheet = "지원자 지역구분통계표"
 )
 
+func InitSheet(xlsx *excelize.File) {
+	xlsx.NewSheet(AdmissionTicketSheet)
+	xlsx.NewSheet(RegionalClassificationSheet)
+	xlsx.DeleteSheet("Sheet1")
+}
+
+func SetPageLayout(xlsx *excelize.File) {
+	xlsx.SetPageLayout(
+		AdmissionTicketSheet,
+		excelize.PageLayoutOrientation(excelize.OrientationLandscape),
+		excelize.PageLayoutPaperSize(9),
+	)
+
+	xlsx.SetPageMargins(AdmissionTicketSheet,
+		excelize.PageMarginHeader(0.3),
+		excelize.PageMarginFooter(0.3),
+		excelize.PageMarginTop(0.25),
+		excelize.PageMarginBottom(0.25),
+		excelize.PageMarginLeft(0.25),
+		excelize.PageMarginRight(0.25),
+	)
+}
+
 func SetColumnWidth(xlsx *excelize.File) {
 	xlsx.SetDefaultFont("맑은 고딕")
 	setStyleWithFont(xlsx)
