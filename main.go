@@ -1,79 +1,43 @@
 package main
 
 import (
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"log"
+	"os"
+
+	"github.com/entrydsm/printadmissionticket/db"
+
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
-	"log"
+
+	"github.com/entrydsm/printadmissionticket/handler"
 )
 
-var (
-	ContentType = "application/octet-stream"
-	FileName    = "대덕소프트웨어마이스터고등학교_수험표.xlsx"
-)
-
+// todo: cache directory
 func main() {
-	InitDB()
-	InitS3()
+	dsn := os.Getenv("MYSQL_URL")
+	dbCon, err := db.InitDB(dsn)
+	if err != nil {
+		log.Panic("failed to connect db")
+	}
+
+	s3Downloader, err := InitS3Downloader()
+	if err != nil {
+		log.Panic("failed to connect s3")
+	}
+
+	jwtSecretKey := os.Getenv("JWT_SECRET_KEY")
+	if jwtSecretKey == "" {
+		log.Panic("failed to get jwt secret key from env")
+	}
+
 	r := router.New()
-	r.GET("/api/v5/admin/excel/admission_ticket", printApplicantAdmission)
-	log.Fatal(fasthttp.ListenAndServe(":8080", CORS(r.Handler)))
-}
-
-func printApplicantAdmission(ctx *fasthttp.RequestCtx) {
-	if !IsValidToken(ctx) {
-		return
-	}
-
-	xlsx := excelize.NewFile()
-	SetColumnWidth(xlsx)
-	xlsx.SetPageLayout(
-		"Sheet1",
-		excelize.PageLayoutOrientation(excelize.OrientationLandscape),
-		excelize.PageLayoutPaperSize(9),
-	)
-
-	xlsx.SetPageMargins("Sheet1",
-		excelize.PageMarginHeader(0.3),
-		excelize.PageMarginFooter(0.3),
-		excelize.PageMarginTop(0.25),
-		excelize.PageMarginBottom(0.25),
-		excelize.PageMarginLeft(0.25),
-		excelize.PageMarginRight(0.25),
-	)
-
-	users := FindAllUserStatus()
-	axis := "A1"
-	for index := 1; index <= len(users); index++ {
-		user := users[index-1]
-		PrintTicket(xlsx, axis, user.ToTicket())
-
-		if index != len(users) {
-			switch column := index % 3; column {
-			case 1:
-				fallthrough
-			case 2:
-				col, row, _ := excelize.CellNameToCoordinates(axis)
-				axis, _ = excelize.CoordinatesToCellName(col+4, row)
-			case 0:
-				_, row, _ := excelize.CellNameToCoordinates(axis)
-				if index%9 == 0 {
-					row += 1
-				}
-				axis, _ = excelize.CoordinatesToCellName(1, row+10)
-			}
+	r.GET("/api/v5/admin/excel/admission_ticket", func(ctx *fasthttp.RequestCtx) {
+		if !IsValidToken(ctx, []byte(jwtSecretKey)) {
+			DoJSONWrite(ctx, ErrorResponse{Reason: "Invalid Token", Code: fasthttp.StatusUnauthorized})
+			return
 		}
-	}
+		handler.PrintApplicantAdmission(ctx, dbCon, s3Downloader)
+	})
 
-	returnXlsx(ctx, xlsx)
-}
-
-func returnXlsx(ctx *fasthttp.RequestCtx, xlsx *excelize.File) {
-	ctx.Response.Header.SetContentType(ContentType)
-	ctx.Response.Header.Set("Content-Disposition", "attachment; filename="+FileName)
-	ctx.Response.Header.Set("Content-Transfer-Encoding", "binary")
-	ctx.Response.Header.Set("Expires", "0")
-
-	writer := ctx.Response.BodyWriter()
-	xlsx.Write(writer)
+	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
 }

@@ -1,11 +1,16 @@
-package main
+package excel
 
 import (
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/s3manager"
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
+	"os"
+
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 )
 
 func SetColumnWidth(xlsx *excelize.File) {
@@ -42,7 +47,7 @@ func setStyleWithFont(xlsx *excelize.File) {
 	xlsx.SetColStyle("Sheet1", "I", titleStyle)
 }
 
-func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
+func PrintTicket(s3Downloader *s3manager.Downloader, xlsx *excelize.File, titleHCell string, ticket *Ticket) {
 	col, row, _ := excelize.CellNameToCoordinates(titleHCell)
 
 	titleVCell, _ := excelize.CoordinatesToCellName(col+2, row+1)
@@ -85,7 +90,7 @@ func PrintTicket(xlsx *excelize.File, titleHCell string, ticket *Ticket) {
 	xlsx.SetCellValue("Sheet1", receiptCodeValueCell, ticket.ReceiptCode)
 
 	if ticket.ImageURI != "" {
-		SaveIfEmpty(ticket.ImageURI)
+		SaveIfEmpty(s3Downloader, ticket.ImageURI)
 		yScale := 0.358
 		if col == 1 {
 			yScale = 0.3
@@ -134,4 +139,39 @@ func setBorderStyle(xlsx *excelize.File, hCell string, vCell string, leftStyle i
 		Border:    []excelize.Border{left, right, top, bottom},
 	})
 	xlsx.SetCellStyle("Sheet1", hCell, vCell, style)
+}
+
+
+func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) {
+	if key == "" {
+		log.Fatal()
+	}
+
+	filename := "./cache/" + key
+	if exists(filename) {
+		return
+	}
+
+	file, err := os.Create("./cache/" + key)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	// todo: set bucket name on env
+	_, err = s3Downloader.Download(file, &s3.GetObjectInput{
+		Bucket: aws.String("image.entrydsm.hs.kr"),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func exists(name string) bool {
+	_, err := os.Stat(name)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

@@ -1,4 +1,6 @@
-package main
+package excel
+
+import "github.com/entrydsm/printadmissionticket/db"
 
 type Ticket struct {
 	ExamCode     string
@@ -10,19 +12,7 @@ type Ticket struct {
 	ImageURI     string
 }
 
-type User struct {
-	ExamCode              string
-	ReceiptCode           int
-	ApplyType             string
-	IsDaejeon             bool `gorm:"column:is_daejeon"`
-	Name                  string
-	GradeType             string
-	ImageURI              string `gorm:"column:user_photo"`
-	GraduatedSchoolName   string `gorm:"column:graduated_school_name"`
-	UngraduatedSchoolName string `gorm:"column:ungraduated_school_name"`
-}
-
-func (user *User) ToTicket() *Ticket {
+func UserToTicket(user db.UserModel) *Ticket {
 	var isDaejeon string
 	if user.IsDaejeon {
 		isDaejeon = "대전"

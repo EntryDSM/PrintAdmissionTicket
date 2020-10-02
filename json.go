@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/valyala/fasthttp"
 	"log"
 	"time"
+
+	"github.com/valyala/fasthttp"
 )
 
 var (
