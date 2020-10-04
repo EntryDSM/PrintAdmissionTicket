@@ -16,26 +16,7 @@ const (
 )
 
 func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloader *s3manager.Downloader) error {
-	xlsx := excelize.NewFile()
-	excel.SetColumnWidth(xlsx)
-
-	err := xlsx.SetPageLayout(
-		"Sheet1",
-		excelize.PageLayoutOrientation(excelize.OrientationLandscape),
-		excelize.PageLayoutPaperSize(9),
-	)
-	if err != nil {
-		return err
-	}
-
-	err = xlsx.SetPageMargins("Sheet1",
-		excelize.PageMarginHeader(0.3),
-		excelize.PageMarginFooter(0.3),
-		excelize.PageMarginTop(0.25),
-		excelize.PageMarginBottom(0.25),
-		excelize.PageMarginLeft(0.25),
-		excelize.PageMarginRight(0.25),
-	)
+	xlsx, err := excelize.OpenFile("template.xlsx")
 	if err != nil {
 		return err
 	}
