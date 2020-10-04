@@ -22,26 +22,9 @@ func PrintApplicantAdmission(ctx *fasthttp.RequestCtx, dbCon *gorm.DB, downloade
 	}
 
 	users := ListSubmittedUsers(dbCon)
-	axis := "A1"
-	for index := 1; index <= len(users); index++ {
-		user := users[index-1]
-		excel.PrintTicket(downloader, xlsx, axis, excel.UserToTicket(user))
-
-		if index != len(users) {
-			switch column := index % 3; column {
-			case 1:
-				fallthrough
-			case 2:
-				col, row, _ := excelize.CellNameToCoordinates(axis)
-				axis, _ = excelize.CoordinatesToCellName(col+4, row)
-			case 0:
-				_, row, _ := excelize.CellNameToCoordinates(axis)
-				if index%9 == 0 {
-					row += 1
-				}
-				axis, _ = excelize.CoordinatesToCellName(1, row+10)
-			}
-		}
+	xlsx, err = excel.WriteAdmissionTicketsToExcel(downloader, xlsx, users)
+	if err != nil {
+		return err
 	}
 
 	ctx.Response.Header.SetContentType(ContentType)

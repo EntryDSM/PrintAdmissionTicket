@@ -1,64 +1,86 @@
 package excel
 
 import (
+	"errors"
 	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"os"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/s3manager"
+
+	"github.com/entrydsm/printadmissionticket/db"
 )
 
-func PrintTicket(s3Downloader *s3manager.Downloader, xlsx *excelize.File, titleHCell string, ticket *Ticket) {
-	col, row, _ := excelize.CellNameToCoordinates(titleHCell)
+func WriteAdmissionTicketsToExcel(s3Downloader *s3manager.Downloader, xlsx *excelize.File, users []db.UserModel) (*excelize.File, error) {
+	for index := 0; index < len(users); index++ {
+		user := users[index-1]
+		err := PrintTicket(s3Downloader, xlsx, index, UserToTicket(user))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return xlsx, nil
+}
 
-	examCodeValueCell, _ := excelize.CoordinatesToCellName(col+2, row+2)
-	nameValueCell, _ := excelize.CoordinatesToCellName(col+2, row+3)
-	middleSchoolValueCell, _ := excelize.CoordinatesToCellName(col+2, row+4)
-	isDaejeonValueCell, _ := excelize.CoordinatesToCellName(col+2, row+5)
-	receiptCodeValueCell, _ := excelize.CoordinatesToCellName(col+2, row+7)
-	applyTypeValueCell, _ := excelize.CoordinatesToCellName(col+2, row+6)
-	imageHCell, _ := excelize.CoordinatesToCellName(col, row+2)
-
-	xlsx.SetCellValue("Sheet1", examCodeValueCell, ticket.ExamCode)
-	xlsx.SetCellValue("Sheet1", nameValueCell, ticket.Name)
-	xlsx.SetCellValue("Sheet1", middleSchoolValueCell, ticket.MiddleSchool)
-	xlsx.SetCellValue("Sheet1", isDaejeonValueCell, ticket.IsDaejeon)
-	xlsx.SetCellValue("Sheet1", applyTypeValueCell, ticket.ApplyType)
-	xlsx.SetCellValue("Sheet1", receiptCodeValueCell, ticket.ReceiptCode)
+func PrintTicket(s3Downloader *s3manager.Downloader, xlsx *excelize.File, index int, ticket *Ticket) error {
+	imageColumns := []string{"A", "E", "I"}
+	infoColumns := []string{"B", "G", "K"}
+	colNum, rowNum := index%3, index/3
+	row := (rowNum * 10) + 3
 
 	if ticket.ImageURI != "" {
-		SaveIfEmpty(s3Downloader, ticket.ImageURI)
-		yScale := 0.358
-		if col == 1 {
-			yScale = 0.3
+		if err := SaveIfEmpty(s3Downloader, ticket.ImageURI); err != nil {
+			return err
 		}
-
-		err := xlsx.AddPicture("Sheet1", imageHCell, "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
+		if err := xlsx.AddPicture("Sheet1", fmt.Sprintf("%s%d", imageColumns[colNum], row), "./cache/"+ticket.ImageURI, `{
 			"x_offset": 1, 
 			"y_offset": 1, 
 			"x_scale": 0.369, 
-			"y_scale": %f
-		}`, yScale))
-		if err != nil {
-			log.Println(err)
+			"y_scale": 0.358
+		}`); err != nil {
+			return err
+		}
+
+		// NOTE: 왜 col == 1 일 때만 yScale이 다른지 확인
+		//yScale := 0.358
+		//if col == 1 {
+		//	yScale = 0.3
+		//}
+		//
+		//err := xlsx.AddPicture("Sheet1", imageHCell, "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
+		//	"x_offset": 1,
+		//	"y_offset": 1,
+		//	"x_scale": 0.369,
+		//	"y_scale": %f
+		//}`, yScale))
+		//if err != nil {
+		//	return err
+		//}
+	}
+
+	col := infoColumns[colNum]
+	infos := []string{ticket.ExamCode, ticket.Name, ticket.MiddleSchool, ticket.IsDaejeon, ticket.ApplyType, fmt.Sprintf("%d", ticket.ReceiptCode)}
+	for i := 0; i < len(infos); i++ {
+		if err := xlsx.SetCellValue("Sheet1", fmt.Sprintf("%s%d", col, row+i), infos[i]); err != nil {
+			return err
 		}
 	}
 
+	return nil
 }
 
-func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) {
+func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) error {
 	if key == "" {
-		log.Fatal()
+		return errors.New("empty key")
 	}
 
 	filename := "./cache/" + key
 	if exists(filename) {
-		return
+		return nil
 	}
 
 	file, err := os.Create("./cache/" + key)
@@ -73,8 +95,9 @@ func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) {
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		log.Println(err)
+		return err
 	}
+	return nil
 }
 
 func exists(name string) bool {
