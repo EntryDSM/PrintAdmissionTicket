@@ -13,7 +13,6 @@ import (
 	"github.com/entrydsm/printadmissionticket/handler"
 )
 
-// todo: cache directory
 func main() {
 	dsn := os.Getenv("MYSQL_URL")
 	dbCon, err := db.InitDB(dsn)
