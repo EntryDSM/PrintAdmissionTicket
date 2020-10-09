@@ -29,7 +29,7 @@ func PrintTicket(s3Downloader *s3manager.Downloader, xlsx *excelize.File, index 
 	imageColumns := []string{"A", "E", "I"}
 	infoColumns := []string{"B", "G", "K"}
 	colNum, rowNum := index%3, index/3
-	row := (rowNum * 10) + 3
+	row := (rowNum * 10) + 3 + (index+1)/9
 
 	if ticket.ImageURI != "" {
 		if err := SaveIfEmpty(s3Downloader, ticket.ImageURI); err != nil {
