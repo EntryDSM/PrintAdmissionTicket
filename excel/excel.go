@@ -35,30 +35,21 @@ func PrintTicket(s3Downloader *s3manager.Downloader, xlsx *excelize.File, index 
 		if err := SaveIfEmpty(s3Downloader, ticket.ImageURI); err != nil {
 			return err
 		}
-		if err := xlsx.AddPicture("Sheet1", fmt.Sprintf("%s%d", imageColumns[colNum], row), "./cache/"+ticket.ImageURI, `{
+
+		yScale := 0.358
+		if colNum == 0 {
+			// A열일 때에만 yScale이 0.3
+			// ref: https://github.com/EntryDSM/PrintAdmissionTicket/pull/8#discussion_r499310980
+			yScale = 0.3
+		}
+		if err := xlsx.AddPicture("Sheet1", fmt.Sprintf("%s%d", imageColumns[colNum], row), "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
 			"x_offset": 1, 
 			"y_offset": 1, 
 			"x_scale": 0.369, 
-			"y_scale": 0.358
-		}`); err != nil {
+			"y_scale": %f
+		}`, yScale)); err != nil {
 			return err
 		}
-
-		// NOTE: 왜 col == 1 일 때만 yScale이 다른지 확인
-		//yScale := 0.358
-		//if col == 1 {
-		//	yScale = 0.3
-		//}
-		//
-		//err := xlsx.AddPicture("Sheet1", imageHCell, "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
-		//	"x_offset": 1,
-		//	"y_offset": 1,
-		//	"x_scale": 0.369,
-		//	"y_scale": %f
-		//}`, yScale))
-		//if err != nil {
-		//	return err
-		//}
 	}
 
 	col := infoColumns[colNum]
