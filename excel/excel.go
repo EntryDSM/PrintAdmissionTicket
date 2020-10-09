@@ -16,9 +16,8 @@ import (
 )
 
 func WriteAdmissionTicketsToExcel(s3Downloader *s3manager.Downloader, xlsx *excelize.File, users []db.UserModel) (*excelize.File, error) {
-	for index := 0; index < len(users); index++ {
-		user := users[index-1]
-		err := PrintTicket(s3Downloader, xlsx, index, UserToTicket(user))
+	for i, user := range users {
+		err := PrintTicket(s3Downloader, xlsx, i, UserToTicket(user))
 		if err != nil {
 			return nil, err
 		}
