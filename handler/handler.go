@@ -86,7 +86,7 @@ func ListSubmittedUsers(DBConn *gorm.DB) []db.UserModel {
 		Joins("LEFT JOIN ungraduated_application ua on user.receipt_code = ua.user_receipt_code").
 		Joins("LEFT JOIN school gas on ga.school_code = gas.school_code").
 		Joins("LEFT JOIN school uas on ua.school_code = uas.school_code").
-		Where("s.is_final_submit = ?", 1).
+		Where("s.is_final_submit = ? AND s.is_passed_first_apply", 1, 1).
 		Find(&users)
 	return users
 }
