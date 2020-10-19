@@ -6,6 +6,7 @@ import (
 	_ "image/png"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -90,13 +91,13 @@ func PrintTicket(s3Downloader *s3manager.Downloader, xlsx *excelize.File, titleH
 	xlsx.SetCellValue("Sheet1", receiptCodeValueCell, ticket.ReceiptCode)
 
 	if ticket.ImageURI != "" {
-		SaveIfEmpty(s3Downloader, ticket.ImageURI)
+		cached := SaveIfEmpty(s3Downloader, ticket.ImageURI)
 		yScale := 0.358
 		if col == 1 {
 			yScale = 0.3
 		}
 
-		err := xlsx.AddPicture("Sheet1", imageHCell, "./cache/"+ticket.ImageURI, fmt.Sprintf(`{
+		err := xlsx.AddPicture("Sheet1", imageHCell, cached, fmt.Sprintf(`{
 			"x_offset": 1, 
 			"y_offset": 1, 
 			"x_scale": 0.369, 
@@ -141,17 +142,18 @@ func setBorderStyle(xlsx *excelize.File, hCell string, vCell string, leftStyle i
 	xlsx.SetCellStyle("Sheet1", hCell, vCell, style)
 }
 
-func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) {
+func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) string {
 	if key == "" {
 		log.Fatal()
 	}
 
-	filename := "./cache/" + key
+	lowKey := strings.ToLower(key)
+	filename := "./cache/" + lowKey
 	if exists(filename) {
-		return
+		return filename
 	}
 
-	file, err := os.Create("./cache/" + key)
+	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -165,6 +167,7 @@ func SaveIfEmpty(s3Downloader *s3manager.Downloader, key string) {
 	if err != nil {
 		log.Println(err)
 	}
+	return filename
 }
 
 func exists(name string) bool {
